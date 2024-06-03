@@ -24,7 +24,7 @@
    1. 下载[发布页面](https://github.com/xuan06zyx/bililive-vod/releases)中名称带env的压缩文件解压
    2. 启动lx-music-desktop.exe(一定要先启动落雪音乐再启动本程序!!!)
    3. 启动点歌机后输入房间号回车即可
-4. 有代码基础的用户可以clone本仓库,自行下载落雪音乐
+4. 有代码基础的用户可以clone本仓库,自行下载[落雪音乐](https://github.com/lyswhut/lx-music-desktop)
 5. 在目标直播间发送弹幕点歌+空格+歌曲名称即可，如`点歌 青花瓷`
 
 ## 问题反馈
