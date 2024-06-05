@@ -14,6 +14,7 @@
 
 - [x] 监控弹幕
 - [x] 弹幕点歌
+- [x] 歌曲黑名单
 - [ ] 前端展示歌单
 - [ ] 制作UI
 
@@ -24,8 +25,15 @@
    1. 下载[发布页面](https://github.com/xuan06zyx/bililive-vod/releases)中名称带env的压缩文件解压
    2. 启动lx-music-desktop.exe(一定要先启动落雪音乐再启动本程序!!!)
    3. 启动点歌机后输入房间号回车即可
-4. 有代码基础的用户可以clone本仓库,自行下载[落雪音乐](https://github.com/lyswhut/lx-music-desktop)
-5. 在目标直播间发送弹幕点歌+空格+歌曲名称即可，如`点歌 青花瓷`
+4. .A歌曲黑名单.txt 内的歌名不会触发点歌 用回车分隔歌名 一行一个(即屏蔽词)
+5. 可以在启动脚本的代码中填写直播间号 这样后续将不再需要手动输入 例如:
+   ```cmd
+   powershell ./python/python.exe main.py 123456
+
+   pause
+   ```
+6. 有代码基础的用户可以clone本仓库,自行下载[落雪音乐](https://github.com/lyswhut/lx-music-desktop)
+7. 在目标直播间发送弹幕点歌+空格+歌曲名称即可，如`点歌 青花瓷`
 
 ## 问题反馈
 
