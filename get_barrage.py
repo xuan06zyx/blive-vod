@@ -23,9 +23,8 @@ def Get_Barrage(roomid):
             bilibili = json.loads(requests.get(url=bilibili_url, headers=header).text)
             room = bilibili['data']['room']
             admin = bilibili['data']['admin']
-        except requests.exceptions.ConnectionError:
-            print('网络连接失败，自动重试ing......')
-            pass
+        except requests.exceptions.ConnectionError as e:
+            print(f'网络连接失败，自动重试ing...,Error:{e}')
         # 获取所有弹幕
         for i in room:
             barrage_text = i['text']  # 弹幕文本
