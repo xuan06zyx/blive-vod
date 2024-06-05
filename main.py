@@ -28,14 +28,18 @@ for line in Blacklist_lines:
 for _ in get_barrage:
     # 弹幕列表变化以后触发迭代并调用方法
     barrage_ = next(get_barrage)
+    barrage_name = barrage_["barrage_name"]
     barrage_list = barrage_["barrage_list"]
     barrage_text_list = barrage_["barrage_text_list"]
     if barrage_text_list:
         diange = re.search(r'^点歌\s+(.*)', barrage_text_list[-1])
-        if diange and last_song != diange.group(1) and diange.group(1) not in BlackSong_list:
+        if diange and last_song != diange.group(1) and diange.group(1):
             # 正则表达式
             song_name = diange.group(1)  # 匹配点歌关键词
             last_song = song_name
+            if song_name in BlackSong_list:
+                print(f'发现屏蔽词:{song_name},发送者:{barrage_name}')
+                continue
 
             print('收到点歌请求:', song_name)
             Scheme_url = lxmusic.music_searchPlay(name=song_name, playLater=True)  # 调用封装好的落雪音乐模块
