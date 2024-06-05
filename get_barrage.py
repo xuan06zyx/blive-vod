@@ -6,6 +6,7 @@ header = {
     'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) '
                   'Chrome/120.0.0.0 Safari/537.36',
 }
+barrage_name = ''
 barrage_list = []
 barrage_text_list = []
 
@@ -36,7 +37,7 @@ def Get_Barrage(roomid):
                 barrage_text_list.append(barrage_text)
                 print(room_barrage)
         time.sleep(0.3)
-        yield {"barrage_list": barrage_list, "barrage_text_list": barrage_text_list}
+        yield {"barrage_list": barrage_list, "barrage_text_list": barrage_text_list, "barrage_name": barrage_name}
 
 
 if __name__ == '__main__':
