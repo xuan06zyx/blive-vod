@@ -1,7 +1,6 @@
 import get_barrage
 import webbrowser
 import lxmusic
-import time
 import sys
 import re
 
