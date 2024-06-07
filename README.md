@@ -1,7 +1,7 @@
 <div align="center">
 
 <h1>Blive-Vod</h1>
-<h1>Bilibili直播弹幕点歌机</h1>
+<h1>阿B直播弹幕点歌机</h1>
 
 </div>
 
@@ -14,6 +14,7 @@
 
 - [x] 监控弹幕
 - [x] 弹幕点歌
+- [x] 弹幕切歌
 - [x] 歌曲黑名单
 - [ ] 前端展示歌单
 - [ ] 制作UI
@@ -21,26 +22,29 @@
 ## 使用说明
 1. 本项目歌曲播放功能通过调用[落雪音乐桌面版](https://github.com/lyswhut/lx-music-desktop)2.8.0+完成
 2. 本项目仅能在win10/11 x64平台上运行，其它平台自行研究
-3. 使用配置完成的程序(包括了[python](https://www.python.org/downloads/windows/)环境和[lxmusic](https://github.com/lyswhut/lx-music-desktop/releases))
+3. 使用配置完成的程序(包含[python](https://www.python.org/downloads/windows/)环境和[lxmusic](https://github.com/lyswhut/lx-music-desktop/releases))
    1. 下载[发布页面](https://github.com/xuan06zyx/bililive-vod/releases)中名称带env的压缩文件解压
    2. 启动lx-music-desktop.exe(一定要先启动落雪音乐再启动本程序!!!)
    3. 启动点歌机后输入房间号回车即可
-4. .A歌曲黑名单.txt 内的歌名不会触发点歌 用回车分隔歌名 一行一个(即屏蔽词)
-5. 可以在启动脚本的代码中填写直播间号 这样后续将不再需要手动输入 例如:
+4. 1.01新增.A歌曲黑名单.txt 内的歌名不会触发点歌 用回车分隔歌名 一行一个(即屏蔽词 修改屏蔽词文件需重启程序生效)
+5. 1.01新增在启动脚本的中填写直播间号 这样后续将不再需要手动输入 例如:
    ```cmd
    powershell ./python/python.exe main.py 123456
-
+   
    pause
    ```
-6. 有代码基础的用户可以clone本仓库,自行下载[落雪音乐](https://github.com/lyswhut/lx-music-desktop)
+6. 推荐有代码基础的用户可以clone本仓库,自行下载[落雪音乐](https://github.com/lyswhut/lx-music-desktop)
 7. 在目标直播间发送弹幕点歌+空格+歌曲名称即可，如`点歌 青花瓷`
+8. 1.02版本新增弹幕切歌功能 拥有房管权限的用户发送弹幕`下一首`来切歌
 
 ## 问题反馈
 
 1. 有任何问题都可以提[issues](https://github.com/xuan06zyx/blive-vod/issues)（新手程序员很少会看）
 2. 国内用户可以加我[QQ](https://api.lolimi.cn/API/tzmp/api.php?qq=2015441509)
+3. 落雪音乐无法播放歌曲？[点此](https://github.com/lyswhut/lx-music-desktop/issues/5#issuecomment-2099784225)
 
 ## 注意事项
-1. 由于B站直播弹幕会有历史记录，如果历史记录中最新一条弹幕含有点歌会直接触发点歌功能
+1. 由于接口是弹幕历史记录，如果历史记录中最新一条弹幕含有点歌/下一首等触发词会直接触发功能
+2. 有懂websocket以及会调用实时弹幕接口的大神联系我qwq
 <br>
 ⭐**如果喜欢，点个star~**⭐
