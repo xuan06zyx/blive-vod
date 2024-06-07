@@ -6,6 +6,7 @@ header = {
     'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) '
                   'Chrome/120.0.0.0 Safari/537.36',
 }
+error = 0
 barrage_name = ''
 barrage_list = []
 barrage_text_list = []
@@ -17,6 +18,7 @@ def Get_Barrage(roomid):
     :param roomid: 直播间id 字符串
     :return: 弹幕列表和弹幕文本列表
     """
+    global error
     while True:
         try:
             bilibili_url = f'https://api.live.bilibili.com/xlive/web-room/v1/dM/gethistory?roomid={roomid}&room_type=0'
@@ -25,7 +27,11 @@ def Get_Barrage(roomid):
             room = bilibili['data']['room']
             admin = bilibili['data']['admin']
         except requests.exceptions.ConnectionError as e:
+            error = 0
             print(f'网络连接失败，自动重试ing...,Error:{e}')
+        if error == 0:
+            print(f'成功连接到直播间{roomid}')
+            error += 1
         # 获取所有弹幕
         for i in room:
             barrage_text = i['text']  # 弹幕文本
@@ -37,7 +43,7 @@ def Get_Barrage(roomid):
                 barrage_text_list.append(barrage_text)
                 print(room_barrage)
         time.sleep(0.3)
-        yield {"barrage_list": barrage_list, "barrage_text_list": barrage_text_list, "barrage_name": barrage_name}
+        yield {"admin": admin, "barrage_list": barrage_list, "barrage_text_list": barrage_text_list, "barrage_name": barrage_name}
 
 
 if __name__ == '__main__':
