@@ -43,12 +43,6 @@ for _ in get_barrage:
     barrage_list = barrage_["barrage_list"]
     barrage_text_list = barrage_["barrage_text_list"]
     if barrage_text_list:
-        # 弹幕切歌
-        if admin[-1]["text"] == '下一首' and admin[-1]["timeline"] != timeline:
-            print(f'收到切歌请求, 发送者:{admin[-1]["nickname"]}')
-            timeline = admin[-1]["timeline"]
-            webbrowser.open(url='lxmusic://player/skipNext')
-
         # 弹幕点歌
         # 正则表达式
         diange = re.search(r'^点歌\s+(.*)', barrage_text_list[-1])
@@ -62,5 +56,10 @@ for _ in get_barrage:
             print('收到点歌请求:', song_name)
             Scheme_url = lxmusic.music_searchPlay(name=song_name, playLater=True)  # 调用封装好的落雪音乐模块
             webbrowser.open(url=Scheme_url)  # 使用webbrowser打开Scheme URL
-
             song_list.append(song_name)  # 写入歌单列表
+
+        # 弹幕切歌
+        elif admin[-1]["text"] == '下一首' and admin[-1]["timeline"] != timeline:
+            print(f'收到切歌请求, 发送者:{admin[-1]["nickname"]}')
+            timeline = admin[-1]["timeline"]
+            webbrowser.open(url='lxmusic://player/skipNext')
