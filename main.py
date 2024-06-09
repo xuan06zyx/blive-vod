@@ -1,19 +1,38 @@
 import get_barrage
+import questionary
 import webbrowser
 import requests
 import lxmusic
+import json
 import sys
 import re
 
 version = 1.02
-# 版本检查
-res = requests.get('https://api.github.com/repos/xuan06zyx/blive-vod/releases')
-latest_version = res.json()[0]['name']
+# 版本管理
+github_url = 'https://api.github.com/repos/xuan06zyx/blive-vod/releases/latest'
+gitee_url = 'https://gitee.com/api/v5/repos/zyXuan06/blive-vod/releases/latest'
+# 读取配置文件
+with open('config.json', 'r', encoding='utf-8') as r:
+    config = json.load(r)
+    release_api = config['release_api']
+    # 判断版本管理渠道
+    if release_api == '':
+        release_api = questionary.select("选择版本管理渠道", ['Github(Global)', 'Gitee(China)']).ask()
+        with open('config.json', 'w', encoding='utf-8') as w:
+            config['release_api'] = release_api
+            json.dump(config, w)
+
+    if release_api == 'Github(Global)':
+        release_url = github_url
+    elif release_api == 'Gitee(China)':
+        release_url = gitee_url
+res = requests.get(release_url)
+latest_version = res.json()['name']
 if float(version) < float(latest_version):
     print(
-        f'有可用更新,当前版本为{version},最新版本为{latest_version}\n请前往 https://github.com/xuan06zyx/blive-vod/releases 下载最新版')
+        f'有可用更新,当前版本为{version},最新版本为{latest_version}\n请前往 {release_url} 下载最新版')
 else:
-    print(f'当前版本为最新版本{version}')
+    print(f'当前版本为最新版:{version}({release_api})')
 
 if len(sys.argv) > 1:
     roomid = sys.argv[1]
