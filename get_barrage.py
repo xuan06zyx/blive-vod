@@ -1,3 +1,4 @@
+# 2.0开始废弃
 import json
 import time
 import requests
