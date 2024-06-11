@@ -4,14 +4,16 @@ import json
 
 # 接口文档 https://lxmusic.toside.cn/desktop/scheme-url
 class lxmusic:
-    def Scheme_url(self, url,  data):
+    def Scheme_url(self, url,  data=None):
         """
         生成Scheme url
         :param url: 调用的url
         :param data: 其它方法传来的数据
         :return: 编码后的Scheme url
         """
-        url = f'lxmusic://{url}?data=' + quote(f'{json.dumps(data, ensure_ascii=False)}')
+        url = f'lxmusic://{url}'
+        if data:
+            url = url + '?data=' + quote(f'{json.dumps(data, ensure_ascii=False)}')
         print("编码后的url:", url)
         return url
 
@@ -37,7 +39,7 @@ class lxmusic:
         :param source: 源，支持kw/kg/tx/wy/mg
         :param id: 歌单id
         :param url: 歌单链接 url和id必须传一个
-        :param index: # 播放第几首，从0开始
+        :param index: 播放第几首，从0开始
         :return:songlist/play
         """
         data = {
@@ -101,7 +103,7 @@ class lxmusic:
             }
         return self.Scheme_url('music/play', data)
 
-    def music_searchPlay(self, name="", singer="", albumName="", interval="", playLater=False):
+    def music_searchPlay(self, name: str, singer="", albumName="", interval="", playLater=False):
         """
         搜索音乐并播放
         :param name:（歌曲名，必须）
@@ -119,3 +121,10 @@ class lxmusic:
             "playLater": playLater
         }
         return self.Scheme_url('music/searchPlay', data)
+
+    def player_skipNext(self):
+        """
+        切换下一曲
+        :return:player/skipNext
+        """
+        return self.Scheme_url('player/skipNext')
