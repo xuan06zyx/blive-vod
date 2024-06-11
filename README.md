@@ -25,7 +25,8 @@
 3. 使用配置完成的程序(包含[python](https://www.python.org/downloads/windows/)环境和[lxmusic](https://github.com/lyswhut/lx-music-desktop/releases))
    1. 下载[发布页面](https://github.com/xuan06zyx/bililive-vod/releases)中名称带env的压缩文件解压
    2. 启动lx-music-desktop.exe(一定要先启动落雪音乐再启动本程序!!!)
-   3. 启动点歌机后输入房间号回车即可
+   3. 启动点歌机后输入房间号回车 等待程序输出roomid之类的信息即可
+   4. 后续更新下载不带env的压缩文件替换
 4. 1.01新增.A歌曲黑名单.txt 内的歌名不会触发点歌 用回车分隔歌名 一行一个(即屏蔽词 修改屏蔽词文件需重启程序生效)
 5. 1.01新增在启动脚本的中填写直播间号 这样后续将不再需要手动输入 例如:
    ```cmd
@@ -33,9 +34,10 @@
    
    pause
    ```
-6. 推荐有代码基础的用户可以clone本仓库,自行下载[落雪音乐](https://github.com/lyswhut/lx-music-desktop)
-7. 在目标直播间发送弹幕点歌+空格+歌曲名称即可，如`点歌 青花瓷`
-8. 1.02版本新增弹幕切歌功能 拥有房管权限的用户发送弹幕`下一首`来切歌
+6. 2.0开始调用[blivedm](https://github.com/xfgryujk/blivedm)获取实时弹幕
+7. 推荐有代码基础的用户可以clone本仓库,自行下载[落雪音乐](https://github.com/lyswhut/lx-music-desktop)
+8. 在目标直播间发送弹幕点歌 歌名 歌手即可，如`点歌 青花瓷 周杰伦` 歌手可以不写 程序会自动搜索
+9. 1.02版本新增弹幕切歌功能 拥有房管权限的用户发送弹幕`下一首`来切歌
 
 ## 问题反馈
 
@@ -44,7 +46,8 @@
 3. 落雪音乐无法播放歌曲？[点此](https://github.com/lyswhut/lx-music-desktop/issues/5#issuecomment-2099784225)
 
 ## 注意事项
-1. 由于接口是弹幕历史记录，如果历史记录中最新一条弹幕含有点歌/下一首等触发词会直接触发功能
-2. 有懂websocket以及会调用实时弹幕接口的大神联系我qwq
+1. 2.0版本后，接口是实时弹幕
+~~1. 由于接口是弹幕历史记录，如果历史记录中最新一条弹幕含有点歌/下一首等触发词会直接触发功能~~
+~~2. 有懂websocket以及会调用实时弹幕接口的大神联系我qwq~~
 <br>
 ⭐**如果喜欢，点个star~**⭐
