@@ -3,7 +3,7 @@ import requests
 import json
 
 
-def version(_version: float, release_api: str):
+def version(currentVersion: float, release_api: str):
     # 版本管理
     github_url = 'https://api.github.com/repos/xuan06zyx/blive-vod/releases/latest'
     gitee_url = 'https://gitee.com/api/v5/repos/zyXuan06/blive-vod/releases/latest'
@@ -26,11 +26,11 @@ def version(_version: float, release_api: str):
 
     res = requests.get(release_url)
     latest_version = res.json()['name']
-    if float(_version) < float(latest_version):
+    if float(currentVersion) < float(latest_version):
         print(
-            f'有可用更新,当前版本为{_version},最新版本为{latest_version}\n请前往 {release_url} 下载最新版')
+            f'有可用更新,当前版本为{currentVersion},最新版本为{latest_version}\n请前往 {release_url} 下载最新版')
     else:
-        print(f'当前版本为:{_version},最新版本为{latest_version},渠道:{release_api}')
+        print(f'当前版本为:{currentVersion},最新版本为{latest_version},渠道:{release_api}')
 
 
 if __name__ == '__main__':
