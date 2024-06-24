@@ -7,32 +7,13 @@ import webbrowser
 import http.cookies
 from typing import *
 
-import version
 import lxmusic
 import blivedm
 import blivedm.models.web as web_models
 
-# 打开配置文件
-with open('config.json', 'r', encoding='utf-8') as r:
-    config = json.load(r)
-version.version(config['version'], config['release_api'])  # 调用版本检查方法
 lxmusic = lxmusic.lxmusic()  # 实例化lxmusic类
 
-# 获取命令行参数
-if len(sys.argv) > 1:
-    roomid = sys.argv[1]  # 位置为1的参数 0是本程序
-elif config['roomid'] != '':
-    roomid = config['roomid']  # 配置文件中存在roomid则使用配置文件中的roomid
-else:
-    roomid = input("请输入B站直播间号(回车确认):")  # 没有则执行手动输入
-
-BlackSong_list = []  # 定义一个空列表用于存储屏蔽词
-# 打开黑名单文件并读取内容
-with open('.A歌曲黑名单.txt', 'r', encoding='utf-8') as Blacklist:  # utf-8编码
-    Blacklist_lines = Blacklist.readlines()  # 读取所有行
-for line in Blacklist_lines:
-    BlackSong = line.strip()  # 去除行末的换行符和多余的空格
-    BlackSong_list.append(BlackSong)  # 添加到列表
+currentVersion = 2.01
 
 # 这里填一个已登录账号的cookie的SESSDATA字段的值。不填也可以连接，但是收到弹幕的用户名会打码，UID会变成0
 SESSDATA = ''
@@ -40,7 +21,7 @@ SESSDATA = ''
 session: Optional[aiohttp.ClientSession] = None
 
 
-async def main():
+async def main(roomid):
     init_session()
     try:
         await run_single_client(room_id=int(roomid))
@@ -86,7 +67,7 @@ class MyHandler(blivedm.BaseHandler):
 
         # 弹幕切歌
         if msg == '下一首' and admin == 1:  # 限房管
-            lxmusic.player_skipNext()  # 切换下一首
+            webbrowser.open(lxmusic.player_skipNext())  # 切换下一首
 
         # 弹幕点歌
         diange = re.match(r'点歌\s+(\S+)(?:\s+(\S+))?', msg)
@@ -102,4 +83,33 @@ class MyHandler(blivedm.BaseHandler):
             webbrowser.open(url=Scheme_url)  # 使用webbrowser打开Scheme URL
 
 
-asyncio.run(main())
+if __name__ == '__main__':
+
+    import config
+    import version
+    config.create_config(currentVersion)  # 创建配置文件
+
+    # 打开配置文件
+    with open('config.json', 'r', encoding='utf-8') as r:
+        data = json.load(r)
+
+    version.version(currentVersion, data['release_api'])  # 调用版本检查方法
+
+    # 获取命令行参数
+    if len(sys.argv) > 1:
+        roomid = sys.argv[1]  # 位置为1的参数 0是本程序
+    elif data['roomid'] != '':
+        roomid = data['roomid']  # 配置文件中存在roomid则使用配置文件中的roomid
+    else:
+        roomid = input("请输入B站直播间号(回车确认):")  # 没有则执行手动输入
+
+    BlackSong_list = []  # 定义一个空列表用于存储屏蔽词
+    # 打开黑名单文件并读取内容
+    with open('.A歌曲黑名单.txt', 'r', encoding='utf-8') as Blacklist:  # utf-8编码
+        Blacklist_lines = Blacklist.readlines()  # 读取所有行
+    for line in Blacklist_lines:
+        BlackSong = line.strip()  # 去除行末的换行符和多余的空格
+        BlackSong_list.append(BlackSong)  # 添加到列表
+
+    # 实例化BLiveClient
+    asyncio.run(main(roomid))
