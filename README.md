@@ -23,7 +23,7 @@
 1. 本项目歌曲播放功能通过调用[落雪音乐桌面版](https://github.com/lyswhut/lx-music-desktop)2.8.0+完成
 2. 本项目仅能在win10/11 x64平台上运行，其它平台自行研究
 3. 使用配置完成的程序(包含[python](https://www.python.org/downloads/windows/)环境和[lxmusic](https://github.com/lyswhut/lx-music-desktop/releases))
-   1. 下载[发布页面](https://github.com/xuan06zyx/bililive-vod/releases)中名称带env的压缩文件解压
+   1. 下载[发布页面](https://github.com/xuan06zyx/blive-vod/releases)中名称带env的压缩文件解压
    2. 启动lx-music-desktop.exe(一定要先启动落雪音乐再启动本程序!!!)
    3. 启动点歌机后输入房间号回车 等待程序输出roomid之类的信息即可
    4. 后续更新下载不带env的压缩文件替换
