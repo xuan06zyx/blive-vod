@@ -13,7 +13,7 @@ import blivedm.models.web as web_models
 
 lxmusic = lxmusic.lxmusic()  # 实例化lxmusic类
 
-currentVersion = 2.01
+currentVersion = 2.02
 
 # 这里填一个已登录账号的cookie的SESSDATA字段的值。不填也可以连接，但是收到弹幕的用户名会打码，UID会变成0
 SESSDATA = ''
