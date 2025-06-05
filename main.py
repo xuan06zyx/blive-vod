@@ -13,11 +13,10 @@ import blivedm.models.web as web_models
 
 lxmusic = lxmusic.lxmusic()  # 实例化lxmusic类
 
-currentVersion = 2.02
+currentVersion = 2.03
 
 # 这里填一个已登录账号的cookie的SESSDATA字段的值。不填也可以连接，但是收到弹幕的用户名会打码，UID会变成0
 SESSDATA = ''
-
 session: Optional[aiohttp.ClientSession] = None
 
 
@@ -63,6 +62,7 @@ class MyHandler(blivedm.BaseHandler):
         msg = message.msg  # 弹幕内容
         uname = message.uname  # 用户名
         admin = message.admin  # 是否房管 0:否 1:是
+        print(message)
         print(f'[{message.timestamp}] {uname}：{msg}')
 
         # 弹幕切歌
