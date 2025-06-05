@@ -51,3 +51,6 @@
 ~~2. 有懂websocket以及会调用实时弹幕接口的大神联系我qwq~~
 <br>
 ⭐**如果喜欢，点个star~**⭐
+
+## Stargazers over time
+[![Stargazers over time](https://starchart.cc/xuan06zyx/blive-vod.svg?variant=adaptive)](https://starchart.cc/xuan06zyx/blive-vod)
