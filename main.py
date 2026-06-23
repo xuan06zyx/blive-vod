@@ -125,6 +125,12 @@ if __name__ == '__main__':
         roomid = data['roomid']  # 配置文件中存在roomid则使用配置文件中的roomid
     else:
         roomid = input("请输入B站直播间号(回车确认):")  # 没有则执行手动输入
+        # 保存房间号到配置文件
+        if roomid:
+            data['roomid'] = roomid
+            with open('config.json', 'w', encoding='utf-8') as w:
+                json.dump(data, w, indent=4, ensure_ascii=False)
+            print(f"[配置] 房间号 {roomid} 已保存到 config.json")
 
     BlackSong_list = []  # 定义一个空列表用于存储屏蔽词
     # 打开黑名单文件并读取内容
