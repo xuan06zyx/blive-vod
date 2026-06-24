@@ -10,6 +10,7 @@ from http.server import HTTPServer, BaseHTTPRequestHandler
 
 _server = None
 _qr_url = ""
+_login_done = False
 
 
 HTML_TEMPLATE = """<!DOCTYPE html>
@@ -91,6 +92,21 @@ HTML_TEMPLATE = """<!DOCTYPE html>
         qr.addData('{qr_url_escaped}');
         qr.make();
         document.getElementById('qrcode').innerHTML = qr.createImgTag(5, 10);
+
+        // 轮询登录状态，成功后自动关闭标签页
+        var pollTimer = setInterval(function() {
+            fetch('/status')
+                .then(function(r) { return r.text(); })
+                .then(function(text) {
+                    if (text === 'done') {
+                        clearInterval(pollTimer);
+                        document.querySelector('.status').textContent = '登录成功！正在关闭...';
+                        document.querySelector('.status').style.color = '#00a651';
+                        setTimeout(function() { window.close(); }, 800);
+                    }
+                })
+                .catch(function() {});
+        }, 1000);
     </script>
 </body>
 </html>"""
@@ -108,6 +124,13 @@ class QRHandler(BaseHTTPRequestHandler):
             self.send_header("Content-Type", "text/html; charset=utf-8")
             self.end_headers()
             self.wfile.write(html.encode("utf-8"))
+        elif self.path == "/status":
+            # 前端轮询登录状态
+            self.send_response(200)
+            self.send_header("Content-Type", "text/plain")
+            self.send_header("Cache-Control", "no-cache")
+            self.end_headers()
+            self.wfile.write(b"done" if _login_done else b"waiting")
         elif self.path == "/close":
             self.send_response(200)
             self.send_header("Content-Type", "text/plain")
@@ -144,11 +167,16 @@ def show_qr_page(qr_url: str, port: int = 19820):
 
 
 def close_qr_page():
-    """关闭二维码页面服务器"""
-    global _server
+    """通知页面关闭标签页，然后停止服务器"""
+    global _server, _login_done
+    _login_done = True
     if _server:
+        # 等待2秒让前端轮询到 done 并执行 window.close()
+        import time
+        time.sleep(2)
         try:
             _server.shutdown()
         except Exception:
             pass
         _server = None
+        _login_done = False
