@@ -116,14 +116,11 @@ class MyHandler(blivedm.BaseHandler):
 if __name__ == '__main__':
 
     import config
-    import version
     config.create_config(currentVersion)  # 创建配置文件
 
     # 打开配置文件
     with open('config.json', 'r', encoding='utf-8') as r:
         data = json.load(r)
-
-    version.version(currentVersion, data['release_api'])  # 调用版本检查方法
 
     # 获取命令行参数
     if len(sys.argv) > 1:
