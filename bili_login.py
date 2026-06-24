@@ -22,6 +22,7 @@ QR_POLL_URL = "https://passport.bilibili.com/x/passport-login/web/qrcode/poll"
 REFRESH_COOKIE_URL = "https://passport.bilibili.com/x/passport-login/web/cookie/refresh"
 CONFIRM_REFRESH_URL = "https://passport.bilibili.com/x/passport-login/web/confirm/refresh"
 COOKIE_INFO_URL = "https://passport.bilibili.com/x/passport-login/web/cookie/info"
+LIVE_ROOM_URL = "https://api.live.bilibili.com/room/v1/Room/getRoomInfoOld"
 
 USER_AGENT = (
     "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36"
@@ -40,6 +41,40 @@ async def check_cookie_valid(session: aiohttp.ClientSession) -> bool:
     except Exception as e:
         print(f"[登录] 检查cookie时出错: {e}")
     return False
+
+
+async def get_user_info(session: aiohttp.ClientSession) -> Optional[dict]:
+    """获取当前登录用户的信息（昵称、UID）"""
+    try:
+        async with session.get(NAV_URL, headers={"User-Agent": USER_AGENT}) as resp:
+            data = await resp.json()
+            if data["code"] == 0 and data["data"].get("isLogin"):
+                return {
+                    "uname": data["data"].get("uname", "未知"),
+                    "uid": data["data"].get("mid", 0),
+                }
+    except Exception:
+        pass
+    return None
+
+
+async def get_user_live_room(session: aiohttp.ClientSession, uid: int) -> Optional[str]:
+    """通过UID获取用户的直播间号"""
+    try:
+        params = {"mid": uid}
+        async with session.get(
+            LIVE_ROOM_URL,
+            params=params,
+            headers={"User-Agent": USER_AGENT},
+        ) as resp:
+            data = await resp.json()
+            if data["code"] == 0:
+                roomid = data["data"].get("roomid", 0)
+                if roomid:
+                    return str(roomid)
+    except Exception:
+        pass
+    return None
 
 
 async def check_need_refresh(session: aiohttp.ClientSession) -> bool:
@@ -277,14 +312,14 @@ def apply_cookies_to_session(session: aiohttp.ClientSession, cookie_data: dict):
     session.cookie_jar.update_cookies(cookies)
 
 
-async def ensure_login(session: aiohttp.ClientSession) -> bool:
+async def ensure_login(session: aiohttp.ClientSession) -> Optional[str]:
     """
     确保已登录的主入口。优先级：
-    1. 从本地文件加载cookie → 验证有效性
+    1. 从本地文件加载cookie → 验证有效性 → 询问用户是否使用该账号
     2. 如果快过期 → 尝试refresh
-    3. 如果无效/无本地cookie → 扫码登录
+    3. 如果无效/无本地cookie/用户拒绝 → 扫码登录
 
-    返回True表示登录成功
+    返回登录账号的直播间号（如有），否则返回None
     """
     # 第一步：尝试从文件加载
     cookie_data = load_cookies()
@@ -294,25 +329,41 @@ async def ensure_login(session: aiohttp.ClientSession) -> bool:
 
         # 检查是否有效
         if await check_cookie_valid(session):
-            # 检查是否需要刷新
-            if await check_need_refresh(session):
-                print("[登录] Cookie即将过期，尝试自动刷新...")
-                new_data = await refresh_cookie(
-                    session,
-                    cookie_data["refresh_token"],
-                    cookie_data.get("bili_jct", ""),
-                )
-                if new_data:
-                    save_cookies(
-                        new_data["sessdata"],
-                        new_data["bili_jct"],
-                        new_data["dedeuserid"],
-                        new_data["refresh_token"],
-                    )
-                    apply_cookies_to_session(session, new_data)
+            # 获取用户信息并询问
+            user_info = await get_user_info(session)
+            if user_info:
+                uname = user_info["uname"]
+                uid = user_info["uid"]
+                choice = input(f"[登录] 检测到账号: {uname} (UID:{uid})，是否使用该账号？(y/n): ").strip().lower()
+                if choice == 'y' or choice == 'yes' or choice == '':
+                    # 检查是否需要刷新cookie
+                    if await check_need_refresh(session):
+                        print("[登录] Cookie即将过期，尝试自动刷新...")
+                        new_data = await refresh_cookie(
+                            session,
+                            cookie_data["refresh_token"],
+                            cookie_data.get("bili_jct", ""),
+                        )
+                        if new_data:
+                            save_cookies(
+                                new_data["sessdata"],
+                                new_data["bili_jct"],
+                                new_data["dedeuserid"],
+                                new_data["refresh_token"],
+                            )
+                            apply_cookies_to_session(session, new_data)
+                        else:
+                            print("[登录] 刷新失败，当前Cookie仍可用，继续使用")
+                    # 获取该账号的直播间号
+                    roomid = await get_user_live_room(session, uid)
+                    if roomid:
+                        print(f"[登录] 已获取 {uname} 的直播间号: {roomid}")
+                    return roomid
                 else:
-                    print("[登录] 刷新失败，当前Cookie仍可用，继续使用")
-            return True
+                    # 用户选择不使用该账号，清除cookie，走扫码登录
+                    print("[登录] 切换账号，准备扫码登录...")
+                    # 清空session中的cookie
+                    session.cookie_jar.clear()
         else:
             # Cookie无效，尝试refresh
             print("[登录] Cookie已失效，尝试使用refresh_token刷新...")
@@ -330,7 +381,19 @@ async def ensure_login(session: aiohttp.ClientSession) -> bool:
                 )
                 apply_cookies_to_session(session, new_data)
                 if await check_cookie_valid(session):
-                    return True
+                    user_info = await get_user_info(session)
+                    if user_info:
+                        uname = user_info["uname"]
+                        uid = user_info["uid"]
+                        choice = input(f"[登录] 检测到账号: {uname} (UID:{uid})，是否使用该账号？(y/n): ").strip().lower()
+                        if choice == 'y' or choice == 'yes' or choice == '':
+                            roomid = await get_user_live_room(session, uid)
+                            if roomid:
+                                print(f"[登录] 已获取 {uname} 的直播间号: {roomid}")
+                            return roomid
+                        else:
+                            print("[登录] 切换账号，准备扫码登录...")
+                            session.cookie_jar.clear()
 
     # 第二步：需要扫码登录
     print("[登录] 需要扫码登录...")
@@ -343,7 +406,14 @@ async def ensure_login(session: aiohttp.ClientSession) -> bool:
             login_result["refresh_token"],
         )
         apply_cookies_to_session(session, login_result)
-        return True
+        # 登录成功后获取用户直播间
+        user_info = await get_user_info(session)
+        if user_info:
+            roomid = await get_user_live_room(session, user_info["uid"])
+            if roomid:
+                print(f"[登录] 已获取 {user_info['uname']} 的直播间号: {roomid}")
+            return roomid
+        return None
 
     print("[登录] 登录失败，将以未登录状态运行（弹幕用户名会打码）")
-    return False
+    return None

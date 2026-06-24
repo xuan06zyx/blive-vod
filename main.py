@@ -27,7 +27,36 @@ async def main(roomid):
     init_session()
     try:
         # 自动登录（加载本地cookie → 刷新 → 扫码）
-        await bili_login.ensure_login(session)
+        login_roomid = await bili_login.ensure_login(session)
+        # 如果登录返回了直播间号且当前未配置房间号，则使用登录账号的直播间
+        if login_roomid and not roomid:
+            roomid = login_roomid
+            print(f"[配置] 使用登录账号的直播间号: {roomid}")
+            # 保存到配置文件
+            try:
+                with open('config.json', 'r', encoding='utf-8') as r:
+                    cfg = json.load(r)
+                cfg['roomid'] = roomid
+                with open('config.json', 'w', encoding='utf-8') as w:
+                    json.dump(cfg, w, indent=4, ensure_ascii=False)
+            except Exception:
+                pass
+        if not roomid:
+            roomid = input("请输入B站直播间号(回车确认):")
+            if roomid:
+                # 保存到配置文件
+                try:
+                    with open('config.json', 'r', encoding='utf-8') as r:
+                        cfg = json.load(r)
+                    cfg['roomid'] = roomid
+                    with open('config.json', 'w', encoding='utf-8') as w:
+                        json.dump(cfg, w, indent=4, ensure_ascii=False)
+                    print(f"[配置] 房间号 {roomid} 已保存到 config.json")
+                except Exception:
+                    pass
+        if not roomid:
+            print("[错误] 未指定直播间号，程序退出")
+            return
         print(f"[信息] 监听房间号: {roomid}  https://live.bilibili.com/{roomid}")
         await run_single_client(room_id=int(roomid))
     finally:
@@ -123,18 +152,11 @@ if __name__ == '__main__':
         data = json.load(r)
 
     # 获取命令行参数
+    roomid = ""
     if len(sys.argv) > 1:
         roomid = sys.argv[1]  # 位置为1的参数 0是本程序
     elif data['roomid'] != '':
         roomid = data['roomid']  # 配置文件中存在roomid则使用配置文件中的roomid
-    else:
-        roomid = input("请输入B站直播间号(回车确认):")  # 没有则执行手动输入
-        # 保存房间号到配置文件
-        if roomid:
-            data['roomid'] = roomid
-            with open('config.json', 'w', encoding='utf-8') as w:
-                json.dump(data, w, indent=4, ensure_ascii=False)
-            print(f"[配置] 房间号 {roomid} 已保存到 config.json")
 
     BlackSong_list = []  # 定义一个空列表用于存储屏蔽词
     # 打开黑名单文件并读取内容
