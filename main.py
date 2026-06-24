@@ -14,6 +14,7 @@ import bili_login
 import kg_search
 import wy_search
 import tx_search
+import song_handler
 
 lxmusic = lxmusic.lxmusic()  # 实例化lxmusic类
 
@@ -103,20 +104,8 @@ class MyHandler(blivedm.BaseHandler):
                     print(f'[点歌] QQ音乐找到: {song_info["name"]} - {song_info["singer"]}')
 
         if song_info:
-            Scheme_url = lxmusic.music_play(
-                source=song_info["source"],
-                name=song_info["name"],
-                singer=song_info["singer"],
-                songmid=song_info["songmid"],
-                img=song_info["img"],
-                albumId=song_info["albumId"],
-                interval=song_info["interval"],
-                albumName=song_info["albumName"],
-                types=song_info["types"],
-                hash=song_info.get("hash", ""),
-                strMediaMid=song_info.get("strMediaMid", ""),
-            )
-            webbrowser.open(url=Scheme_url)
+            # 通过 song_handler 以 searchPlay 方式播放（稍后播放模式）
+            song_handler.play_song(song_info)
         else:
             # 所有源都搜索失败，回退到 searchPlay
             print(f'[点歌] 所有源均无结果，使用默认搜索')
