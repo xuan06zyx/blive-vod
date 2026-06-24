@@ -18,8 +18,6 @@ import song_handler
 
 lxmusic = lxmusic.lxmusic()  # 实例化lxmusic类
 
-currentVersion = 2.03
-
 session: Optional[aiohttp.ClientSession] = None
 
 
@@ -145,7 +143,7 @@ class MyHandler(blivedm.BaseHandler):
 if __name__ == '__main__':
 
     import config
-    config.create_config(currentVersion)  # 创建配置文件
+    config.create_config()  # 创建配置文件
 
     # 打开配置文件
     with open('config.json', 'r', encoding='utf-8') as r:

@@ -13,7 +13,7 @@ from typing import Optional, Tuple
 
 import aiohttp
 
-COOKIE_FILE = os.path.join(os.path.dirname(os.path.abspath(__file__)), "cookies.json")
+CONFIG_FILE = os.path.join(os.path.dirname(os.path.abspath(__file__)), "config.json")
 
 # B站登录相关API
 NAV_URL = "https://api.bilibili.com/x/web-interface/nav"
@@ -165,29 +165,35 @@ async def _confirm_refresh(session: aiohttp.ClientSession, csrf: str, old_refres
 
 
 def save_cookies(sessdata: str, bili_jct: str, dedeuserid: str, refresh_token: str):
-    """保存cookie和refresh_token到本地文件"""
-    data = {
+    """保存cookie和refresh_token到config.json"""
+    try:
+        with open(CONFIG_FILE, "r", encoding="utf-8") as f:
+            config = json.load(f)
+    except (FileNotFoundError, json.JSONDecodeError):
+        config = {}
+
+    config["cookies"] = {
         "sessdata": sessdata,
         "bili_jct": bili_jct,
         "dedeuserid": dedeuserid,
         "refresh_token": refresh_token,
         "save_time": int(time.time()),
     }
-    with open(COOKIE_FILE, "w", encoding="utf-8") as f:
-        json.dump(data, f, indent=4, ensure_ascii=False)
-    print("[登录] Cookie已保存到本地")
+    with open(CONFIG_FILE, "w", encoding="utf-8") as f:
+        json.dump(config, f, indent=4, ensure_ascii=False)
+    print("[登录] Cookie已保存到 config.json")
 
 
 def load_cookies() -> Optional[dict]:
-    """从本地文件加载cookie"""
-    if not os.path.exists(COOKIE_FILE):
+    """从config.json加载cookie"""
+    if not os.path.exists(CONFIG_FILE):
         return None
     try:
-        with open(COOKIE_FILE, "r", encoding="utf-8") as f:
-            data = json.load(f)
-        # 检查必要字段
-        if "sessdata" in data and "refresh_token" in data:
-            return data
+        with open(CONFIG_FILE, "r", encoding="utf-8") as f:
+            config = json.load(f)
+        cookie_data = config.get("cookies")
+        if cookie_data and "sessdata" in cookie_data and "refresh_token" in cookie_data:
+            return cookie_data
     except (json.JSONDecodeError, KeyError):
         pass
     return None

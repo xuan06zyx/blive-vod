@@ -1,4 +1,5 @@
-# Cookie files - contains login credentials
+# Config file - contains login credentials and personal settings
+config.json
 cookies.json
 
 # Python cache
