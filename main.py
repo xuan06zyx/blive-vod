@@ -1,3 +1,4 @@
+import os
 import re
 import sys
 import json
@@ -15,6 +16,7 @@ import kg_search
 import wy_search
 import tx_search
 import song_handler
+from app_dir import get_config_path, get_blacklist_path
 
 lxmusic = lxmusic.lxmusic()  # 实例化lxmusic类
 
@@ -24,6 +26,7 @@ session: Optional[aiohttp.ClientSession] = None
 async def main(roomid):
     init_session()
     try:
+        config_path = get_config_path()
         # 自动登录（加载本地cookie → 刷新 → 扫码）
         login_roomid = await bili_login.ensure_login(session)
         # 如果登录返回了直播间号且当前未配置房间号，则使用登录账号的直播间
@@ -32,10 +35,10 @@ async def main(roomid):
             print(f"[配置] 使用登录账号的直播间号: {roomid}")
             # 保存到配置文件
             try:
-                with open('config.json', 'r', encoding='utf-8') as r:
+                with open(config_path, 'r', encoding='utf-8') as r:
                     cfg = json.load(r)
                 cfg['roomid'] = roomid
-                with open('config.json', 'w', encoding='utf-8') as w:
+                with open(config_path, 'w', encoding='utf-8') as w:
                     json.dump(cfg, w, indent=4, ensure_ascii=False)
             except Exception:
                 pass
@@ -44,10 +47,10 @@ async def main(roomid):
             if roomid:
                 # 保存到配置文件
                 try:
-                    with open('config.json', 'r', encoding='utf-8') as r:
+                    with open(config_path, 'r', encoding='utf-8') as r:
                         cfg = json.load(r)
                     cfg['roomid'] = roomid
-                    with open('config.json', 'w', encoding='utf-8') as w:
+                    with open(config_path, 'w', encoding='utf-8') as w:
                         json.dump(cfg, w, indent=4, ensure_ascii=False)
                     print(f"[配置] 房间号 {roomid} 已保存到 config.json")
                 except Exception:
@@ -146,7 +149,7 @@ if __name__ == '__main__':
     config.create_config()  # 创建配置文件
 
     # 打开配置文件
-    with open('config.json', 'r', encoding='utf-8') as r:
+    with open(get_config_path(), 'r', encoding='utf-8') as r:
         data = json.load(r)
 
     # 获取命令行参数
@@ -158,11 +161,13 @@ if __name__ == '__main__':
 
     BlackSong_list = []  # 定义一个空列表用于存储屏蔽词
     # 打开黑名单文件并读取内容
-    with open('.A歌曲黑名单.txt', 'r', encoding='utf-8') as Blacklist:  # utf-8编码
-        Blacklist_lines = Blacklist.readlines()  # 读取所有行
-    for line in Blacklist_lines:
-        BlackSong = line.strip()  # 去除行末的换行符和多余的空格
-        BlackSong_list.append(BlackSong)  # 添加到列表
+    blacklist_path = get_blacklist_path()
+    if os.path.exists(blacklist_path):
+        with open(blacklist_path, 'r', encoding='utf-8') as Blacklist:
+            Blacklist_lines = Blacklist.readlines()
+        for line in Blacklist_lines:
+            BlackSong = line.strip()
+            BlackSong_list.append(BlackSong)
 
     # 实例化BLiveClient
     asyncio.run(main(roomid))

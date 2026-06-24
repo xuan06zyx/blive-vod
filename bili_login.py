@@ -12,8 +12,9 @@ import webbrowser
 from typing import Optional, Tuple
 
 import aiohttp
+from app_dir import get_config_path
 
-CONFIG_FILE = os.path.join(os.path.dirname(os.path.abspath(__file__)), "config.json")
+CONFIG_FILE = get_config_path()
 
 # B站登录相关API
 NAV_URL = "https://api.bilibili.com/x/web-interface/nav"

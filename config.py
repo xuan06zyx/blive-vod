@@ -1,16 +1,12 @@
 import os
 import json
+from app_dir import get_config_path
 
 
 def create_config():
-    # 获取当前脚本的目录路径
-    current_dir = os.path.dirname(os.path.abspath(__file__))
-    # 指定config.json文件的路径
-    file_path = os.path.join(current_dir, "config.json")
+    file_path = get_config_path()
 
-    # 检查文件是否存在
-    if not os.path.exists('./config.json'):
-        # 如果文件不存在，则创建一个新的config.json文件
+    if not os.path.exists(file_path):
         config_data = {
             "roomid": ""
         }
