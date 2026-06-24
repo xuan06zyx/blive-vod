@@ -17,6 +17,7 @@ HTML_TEMPLATE = """<!DOCTYPE html>
 <head>
     <meta charset="UTF-8">
     <title>B站扫码登录</title>
+    <script src="https://cdn.jsdelivr.net/npm/qrcode-generator@1.4.4/qrcode.min.js"></script>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body {
@@ -54,10 +55,8 @@ HTML_TEMPLATE = """<!DOCTYPE html>
             display: inline-block;
             margin-bottom: 20px;
         }
-        .qr-container img {
+        #qrcode img {
             display: block;
-            width: 200px;
-            height: 200px;
         }
         .status {
             font-size: 14px;
@@ -82,11 +81,17 @@ HTML_TEMPLATE = """<!DOCTYPE html>
         <div class="title">B站扫码登录</div>
         <div class="subtitle">请使用哔哩哔哩手机APP扫描二维码</div>
         <div class="qr-container">
-            <img src="https://api.qrserver.com/v1/create-qr-code/?size=200x200&data={qr_url}" alt="登录二维码">
+            <div id="qrcode"></div>
         </div>
         <div class="status">等待扫码中...</div>
         <div class="tip">扫码后请在手机上确认登录<br>登录成功后此页面会自动关闭</div>
     </div>
+    <script>
+        var qr = qrcode(0, 'M');
+        qr.addData('{qr_url_escaped}');
+        qr.make();
+        document.getElementById('qrcode').innerHTML = qr.createImgTag(5, 10);
+    </script>
 </body>
 </html>"""
 
@@ -96,7 +101,9 @@ class QRHandler(BaseHTTPRequestHandler):
 
     def do_GET(self):
         if self.path == "/" or self.path == "/qr":
-            html = HTML_TEMPLATE.replace("{qr_url}", _qr_url)
+            # 对URL进行JavaScript字符串转义
+            escaped_url = _qr_url.replace("\\", "\\\\").replace("'", "\\'").replace("&", "\\x26")
+            html = HTML_TEMPLATE.replace("{qr_url_escaped}", escaped_url)
             self.send_response(200)
             self.send_header("Content-Type", "text/html; charset=utf-8")
             self.end_headers()
