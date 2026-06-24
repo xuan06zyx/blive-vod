@@ -219,15 +219,9 @@ async def qr_login(session: aiohttp.ClientSession) -> Optional[dict]:
         print(f"[登录] 获取二维码出错: {e}")
         return None
 
-    # 2. 在终端显示二维码（使用字符画）
-    print("\n" + "=" * 50)
-    print("请使用B站手机APP扫描下方二维码登录")
-    print("=" * 50)
-    _print_qr_terminal(qr_url)
-    print("=" * 50)
-    print("如果看不清，也可以复制链接到浏览器打开:")
-    print(qr_url)
-    print("=" * 50 + "\n")
+    # 2. 使用浏览器展示二维码页面
+    import qr_page
+    qr_page.show_qr_page(qr_url)
 
     # 3. 轮询扫码状态
     print("[登录] 等待扫码...", end="", flush=True)
@@ -245,6 +239,7 @@ async def qr_login(session: aiohttp.ClientSession) -> Optional[dict]:
                 if status_code == 0:
                     # 登录成功
                     print("\n[登录] 扫码登录成功!")
+                    qr_page.close_qr_page()
                     refresh_token = poll_data["data"].get("refresh_token", "")
                     # 从响应cookie中提取
                     cookies = {}
@@ -273,6 +268,7 @@ async def qr_login(session: aiohttp.ClientSession) -> Optional[dict]:
 
                 elif status_code == 86038:
                     print("\n[登录] 二维码已过期，请重新操作")
+                    qr_page.close_qr_page()
                     return None
                 elif status_code == 86090:
                     print("\r[登录] 已扫码，请在手机上确认...", end="", flush=True)
@@ -280,27 +276,12 @@ async def qr_login(session: aiohttp.ClientSession) -> Optional[dict]:
 
         except Exception as e:
             print(f"\n[登录] 轮询出错: {e}")
+            qr_page.close_qr_page()
             return None
 
     print("\n[登录] 等待超时")
+    qr_page.close_qr_page()
     return None
-
-
-def _print_qr_terminal(data: str):
-    """在终端用字符打印二维码"""
-    try:
-        import qrcode
-    except ImportError:
-        print("[登录] 正在安装二维码库...")
-        import subprocess, sys
-        subprocess.check_call([sys.executable, "-m", "pip", "install", "qrcode"],
-                             stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
-        import qrcode
-
-    qr = qrcode.QRCode(border=1)
-    qr.add_data(data)
-    qr.make(fit=True)
-    qr.print_ascii(invert=True)
 
 
 def apply_cookies_to_session(session: aiohttp.ClientSession, cookie_data: dict):
