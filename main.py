@@ -12,6 +12,8 @@ import blivedm
 import blivedm.models.web as web_models
 import bili_login
 import kg_search
+import wy_search
+import tx_search
 
 lxmusic = lxmusic.lxmusic()  # 实例化lxmusic类
 
@@ -78,14 +80,29 @@ class MyHandler(blivedm.BaseHandler):
                 print(f'发现屏蔽词:{song_name},发送者:{uname}')
                 return
             print(f'收到点歌请求: {song_name} 歌手:{song_singer}')
-            # 使用异步任务搜索酷狗并精确播放
+            # 使用异步任务多源搜索并播放（优先级: kg > wy > tx）
             asyncio.create_task(self._play_song(song_name, song_singer))
 
     async def _play_song(self, song_name: str, song_singer: str):
-        """搜索酷狗获取第一首歌的元数据，通过 music/play 精确播放"""
+        """多源搜索获取歌曲元数据，优先级: 酷狗 > 网易云 > QQ音乐"""
+        song_info = None
+
+        # 优先级1: 酷狗搜索
         song_info = await kg_search.search_and_get_first(song_name, song_singer)
         if song_info:
-            print(f'[点歌] 找到: {song_info["name"]} - {song_info["singer"]}')
+            print(f'[点歌] 酷狗找到: {song_info["name"]} - {song_info["singer"]}')
+        else:
+            # 优先级2: 网易云搜索
+            song_info = await wy_search.search_and_get_first(song_name, song_singer)
+            if song_info:
+                print(f'[点歌] 网易云找到: {song_info["name"]} - {song_info["singer"]}')
+            else:
+                # 优先级3: QQ音乐搜索
+                song_info = await tx_search.search_and_get_first(song_name, song_singer)
+                if song_info:
+                    print(f'[点歌] QQ音乐找到: {song_info["name"]} - {song_info["singer"]}')
+
+        if song_info:
             Scheme_url = lxmusic.music_play(
                 source=song_info["source"],
                 name=song_info["name"],
@@ -96,12 +113,13 @@ class MyHandler(blivedm.BaseHandler):
                 interval=song_info["interval"],
                 albumName=song_info["albumName"],
                 types=song_info["types"],
-                hash=song_info["hash"],
+                hash=song_info.get("hash", ""),
+                strMediaMid=song_info.get("strMediaMid", ""),
             )
             webbrowser.open(url=Scheme_url)
         else:
-            # 搜索失败，回退到 searchPlay
-            print(f'[点歌] 酷狗搜索无结果，使用默认搜索')
+            # 所有源都搜索失败，回退到 searchPlay
+            print(f'[点歌] 所有源均无结果，使用默认搜索')
             Scheme_url = lxmusic.music_searchPlay(name=song_name, singer=song_singer, playLater=True)
             webbrowser.open(url=Scheme_url)
 
