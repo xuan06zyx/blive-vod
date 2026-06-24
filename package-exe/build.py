@@ -1,12 +1,11 @@
 # -*- coding: utf-8 -*-
 """
-打包脚本 - 将 blive-vod 打包为单文件夹 exe
-使用 PyInstaller，无需目标机器安装 Python
+打包脚本 - 将 blive-vod 打包为单个 exe 文件
+使用 PyInstaller onefile 模式，无需目标机器安装 Python
 """
 import subprocess
 import sys
 import os
-import shutil
 
 # 项目根目录（package-exe 的上级目录）
 PROJECT_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -35,8 +34,8 @@ def build():
         sys.executable, "-m", "PyInstaller",
         "--noconfirm",
         "--clean",
-        # 单文件夹模式（启动更快，兼容性好）
-        "--onedir",
+        # 单文件模式（只生成一个 exe）
+        "--onefile",
         # 控制台程序
         "--console",
         # 程序名
@@ -46,7 +45,7 @@ def build():
         "--workpath", BUILD_DIR,
         # 指定 spec 文件目录
         "--specpath", os.path.dirname(os.path.abspath(__file__)),
-        # 隐式导入（asyncio相关）
+        # 隐式导入
         "--hidden-import", "aiohttp",
         "--hidden-import", "asyncio",
         "--hidden-import", "http.cookies",
@@ -58,50 +57,21 @@ def build():
         "--hidden-import", "blivedm.models.web",
         "--hidden-import", "blivedm.handlers",
         "--hidden-import", "blivedm.utils",
-        # 添加数据文件
-        "--add-data", f"{os.path.join(PROJECT_ROOT, '.A歌曲黑名单.txt')};.",
         # 主脚本
         main_script,
     ]
 
-    print("[打包] 开始打包...")
+    print("[打包] 开始打包（onefile 模式）...")
     print(f"[打包] 项目目录: {PROJECT_ROOT}")
     print(f"[打包] 输出目录: {DIST_DIR}")
     subprocess.check_call(args)
 
-    # 复制额外文件到输出目录
-    output_dir = os.path.join(DIST_DIR, "blive-vod")
-    extra_files = [".A歌曲黑名单.txt"]
-    for f in extra_files:
-        src = os.path.join(PROJECT_ROOT, f)
-        if os.path.exists(src):
-            shutil.copy2(src, output_dir)
-            print(f"[打包] 复制: {f}")
-
-    # 创建启动脚本
-    bat_content = """@echo off
-echo ========================================
-echo B站直播弹幕点歌机
-echo ========================================
-echo.
-echo [提示] 请确保LX Music已经启动
-echo [提示] 如果未启动，请先手动启动LX Music
-echo.
-timeout /t 3 >nul
-echo [启动] 正在启动点歌机...
-blive-vod.exe
-pause
-"""
-    bat_path = os.path.join(output_dir, "启动点歌机.bat")
-    with open(bat_path, "w", encoding="gbk") as f:
-        f.write(bat_content)
-    print(f"[打包] 创建启动脚本: 启动点歌机.bat")
-
     print("\n" + "=" * 50)
     print("[完成] 打包成功！")
-    print(f"[输出] {output_dir}")
-    print("[说明] 将整个 blive-vod 文件夹复制到目标电脑即可运行")
-    print("[说明] 运行方式：双击 启动点歌机.bat 或直接运行 blive-vod.exe")
+    print(f"[输出] {os.path.join(DIST_DIR, 'blive-vod.exe')}")
+    print("[说明] 只需复制 blive-vod.exe 到目标电脑即可运行")
+    print("[说明] 首次启动自动生成 config.json 和歌曲黑名单文件")
+    print("[说明] 首次启动约需 2-3 秒（解压运行时）")
     print("=" * 50)
 
 
