@@ -22,17 +22,30 @@
 - [x] **房间号自动获取**（登录后自动获取账号直播间号）
 - [x] 浏览器扫码登录页面（美观的二维码展示）
 - [x] 异步点歌处理（不阻塞弹幕监听）
+- [x] **打包为单个 EXE**（无需 Python 环境，开箱即用）
 - [ ] 前端展示歌单
 - [ ] 制作UI
 
 ## 快速开始
 
-### 环境要求
+### 方式一：直接使用 EXE（推荐，无需 Python）
+
+1. 启动 [落雪音乐桌面版](https://github.com/lyswhut/lx-music-desktop/releases) 2.8.0+（**必须先启动！**）
+2. 双击 `blive-vod.exe` 运行
+3. 首次启动：
+   - 自动在浏览器中打开扫码登录页面
+   - 用B站APP扫码登录（登录成功后页面自动关闭）
+   - 自动获取登录账号的直播间号
+4. 首次运行会自动生成 `config.json` 和 `.A歌曲黑名单.txt`（与 exe 同级目录）
+
+### 方式二：源码运行
+
+#### 环境要求
 - Windows 10/11 x64
 - Python 3.9+ ([下载地址](https://www.python.org/downloads/windows/))
 - [落雪音乐桌面版](https://github.com/lyswhut/lx-music-desktop/releases) 2.8.0+
 
-### 安装步骤
+#### 安装步骤
 
 1. **安装Python依赖**
    ```bash
@@ -44,11 +57,20 @@
 
 3. **启动程序**
    - 先启动落雪音乐（**必须先启动！**）
-   - 双击 `启动点歌机.bat` 或运行 `python main.py`
+   - 运行 `python main.py`
    - 首次启动：
      - 自动在浏览器中打开扫码登录页面
      - 用B站APP扫码登录（登录成功后页面自动关闭）
      - 自动获取登录账号的直播间号
+
+### 自行打包 EXE
+
+```bash
+cd package-exe
+python build.py
+```
+
+打包完成后，`package-exe/dist/blive-vod.exe` 即为单文件可执行程序，复制到任意 Windows 电脑即可运行（无需 Python 环境）。详见 [package-exe/README.md](package-exe/README.md)。
 
 ### 使用说明
 
@@ -85,6 +107,7 @@ python main.py 房间号
 ```
 blive-vod-fork/
 ├── main.py              # 主程序入口
+├── app_dir.py           # 应用目录工具（兼容打包/源码运行）
 ├── bili_login.py        # B站登录模块（扫码/Cookie管理）
 ├── qr_page.py           # 二维码展示页面（本地HTTP服务器）
 ├── kg_search.py         # 酷狗音乐搜索模块
@@ -92,11 +115,11 @@ blive-vod-fork/
 ├── tx_search.py         # QQ音乐搜索模块
 ├── song_handler.py      # 搜索结果处理（统一播放接口）
 ├── lxmusic.py           # LX Music Scheme URL封装
-├── config.py            # 配置文件管理
+├── config.py            # 配置文件 / 黑名单自动生成
 ├── blivedm/             # B站直播弹幕客户端库
+├── package-exe/         # EXE 打包脚本
 ├── config.json          # 配置文件（自动生成，含Cookie）
-├── .A歌曲黑名单.txt     # 歌曲黑名单
-├── 启动点歌机.bat       # 一键启动脚本
+├── .A歌曲黑名单.txt     # 歌曲黑名单（自动生成）
 └── requirements.txt     # Python依赖列表
 ```
 
