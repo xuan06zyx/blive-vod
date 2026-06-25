@@ -22,41 +22,44 @@ lxmusic = lxmusic.lxmusic()  # 实例化lxmusic类
 
 session: Optional[aiohttp.ClientSession] = None
 
+# 多源搜索优先级: 酷狗 > 网易云 > QQ音乐
+SEARCH_SOURCES = (
+    (kg_search, "酷狗"),
+    (wy_search, "网易云"),
+    (tx_search, "QQ音乐"),
+)
+
+
+def save_roomid(roomid: str):
+    """将房间号写入 config.json"""
+    try:
+        config_path = get_config_path()
+        with open(config_path, 'r', encoding='utf-8') as r:
+            cfg = json.load(r)
+        cfg['roomid'] = roomid
+        with open(config_path, 'w', encoding='utf-8') as w:
+            json.dump(cfg, w, indent=4, ensure_ascii=False)
+        print(f"[配置] 房间号 {roomid} 已保存到 config.json")
+    except Exception:
+        pass
+
 
 async def main(roomid):
     init_session()
     try:
-        config_path = get_config_path()
         # 自动登录（加载本地cookie → 刷新 → 扫码）
         login_roomid = await bili_login.ensure_login(session)
         # 如果登录返回了直播间号且当前未配置房间号，则使用登录账号的直播间
         if login_roomid and not roomid:
             roomid = login_roomid
             print(f"[配置] 使用登录账号的直播间号: {roomid}")
-            # 保存到配置文件
-            try:
-                with open(config_path, 'r', encoding='utf-8') as r:
-                    cfg = json.load(r)
-                cfg['roomid'] = roomid
-                with open(config_path, 'w', encoding='utf-8') as w:
-                    json.dump(cfg, w, indent=4, ensure_ascii=False)
-            except Exception:
-                pass
+            save_roomid(roomid)
         if not roomid:
-            roomid = input("请输入B站直播间号(回车确认):")
+            roomid = input("请输入B站直播间号(回车确认):").strip()
             if roomid:
-                # 保存到配置文件
-                try:
-                    with open(config_path, 'r', encoding='utf-8') as r:
-                        cfg = json.load(r)
-                    cfg['roomid'] = roomid
-                    with open(config_path, 'w', encoding='utf-8') as w:
-                        json.dump(cfg, w, indent=4, ensure_ascii=False)
-                    print(f"[配置] 房间号 {roomid} 已保存到 config.json")
-                except Exception:
-                    pass
-        if not roomid:
-            print("[错误] 未指定直播间号，程序退出")
+                save_roomid(roomid)
+        if not roomid or not roomid.isdigit():
+            print("[错误] 未指定有效的直播间号，程序退出")
             return
         print(f"[信息] 监听房间号: {roomid}  https://live.bilibili.com/{roomid}")
         await run_single_client(room_id=int(roomid))
@@ -116,31 +119,18 @@ class MyHandler(blivedm.BaseHandler):
 
     async def _play_song(self, song_name: str, song_singer: str):
         """多源搜索获取歌曲元数据，优先级: 酷狗 > 网易云 > QQ音乐"""
-        song_info = None
-
-        # 优先级1: 酷狗搜索
-        song_info = await kg_search.search_and_get_first(song_name, song_singer)
-        if song_info:
-            print(f'[点歌] 酷狗找到: {song_info["name"]} - {song_info["singer"]}')
-        else:
-            # 优先级2: 网易云搜索
-            song_info = await wy_search.search_and_get_first(song_name, song_singer)
+        for module, label in SEARCH_SOURCES:
+            song_info = await module.search_and_get_first(song_name, song_singer)
             if song_info:
-                print(f'[点歌] 网易云找到: {song_info["name"]} - {song_info["singer"]}')
-            else:
-                # 优先级3: QQ音乐搜索
-                song_info = await tx_search.search_and_get_first(song_name, song_singer)
-                if song_info:
-                    print(f'[点歌] QQ音乐找到: {song_info["name"]} - {song_info["singer"]}')
+                print(f'[点歌] {label}找到: {song_info["name"]} - {song_info["singer"]}')
+                # 通过 song_handler 以 searchPlay 方式播放（稍后播放模式）
+                song_handler.play_song(song_info)
+                return
 
-        if song_info:
-            # 通过 song_handler 以 searchPlay 方式播放（稍后播放模式）
-            song_handler.play_song(song_info)
-        else:
-            # 所有源都搜索失败，回退到 searchPlay
-            print(f'[点歌] 所有源均无结果，使用默认搜索')
-            Scheme_url = lxmusic.music_searchPlay(name=song_name, singer=song_singer, playLater=True)
-            webbrowser.open(url=Scheme_url)
+        # 所有源都搜索失败，回退到 searchPlay
+        print(f'[点歌] 所有源均无结果，使用默认搜索')
+        Scheme_url = lxmusic.music_searchPlay(name=song_name, singer=song_singer, playLater=True)
+        webbrowser.open(url=Scheme_url)
 
 
 if __name__ == '__main__':

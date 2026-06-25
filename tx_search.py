@@ -3,13 +3,9 @@
 QQ音乐搜索模块 - 搜索歌曲并返回第一首的元数据，供 LX Music music/play 使用
 """
 import aiohttp
+from search_common import USER_AGENT, build_keyword, format_interval, run_search
 
 TX_SEARCH_URL = "https://c.y.qq.com/soso/fcgi-bin/client_search_cp"
-
-USER_AGENT = (
-    "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36"
-    " (KHTML, like Gecko) Chrome/126.0.0.0 Safari/537.36"
-)
 
 
 async def search_tx(keyword: str, page: int = 1, pagesize: int = 5) -> list:
@@ -64,11 +60,7 @@ def parse_tx_song(song: dict) -> dict:
     img = f"https://y.gtimg.cn/music/photo_new/T002R300x300M000{albummid}.jpg" if albummid else ""
 
     # 格式化时长 秒 -> mm:ss
-    interval = ""
-    if song_duration:
-        minutes = song_duration // 60
-        seconds = song_duration % 60
-        interval = f"{minutes:02d}:{seconds:02d}"
+    interval = format_interval(song_duration)
 
     # 构建 types 数组
     size128 = song.get("size128", 0)
@@ -106,15 +98,4 @@ async def search_and_get_first(name: str, singer: str = "") -> dict | None:
     :param singer: 歌手（可选）
     :return: music/play 所需参数 dict，失败返回 None
     """
-    keyword = name
-    if singer:
-        keyword = f"{name} {singer}"
-
-    try:
-        songs = await search_tx(keyword)
-        if not songs:
-            return None
-        return parse_tx_song(songs[0])
-    except Exception as e:
-        print(f"[搜索] QQ音乐搜索出错: {e}")
-        return None
+    return await run_search(search_tx, parse_tx_song, build_keyword(name, singer), "QQ音乐")

@@ -3,13 +3,9 @@
 酷狗搜索模块 - 搜索歌曲并返回第一首的元数据，供 LX Music music/play 使用
 """
 import aiohttp
+from search_common import USER_AGENT, build_keyword, format_interval, run_search
 
 KG_SEARCH_URL = "http://mobilecdn.kugou.com/api/v3/search/song"
-
-USER_AGENT = (
-    "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36"
-    " (KHTML, like Gecko) Chrome/126.0.0.0 Safari/537.36"
-)
 
 
 async def search_kg(keyword: str, page: int = 1, pagesize: int = 5) -> list:
@@ -56,11 +52,7 @@ def parse_kg_song(song: dict) -> dict:
     img = song.get("imgUrl", "") or song.get("img", "")
 
     # 格式化时长 秒 -> mm:ss
-    interval = ""
-    if song_duration:
-        minutes = song_duration // 60
-        seconds = song_duration % 60
-        interval = f"{minutes:02d}:{seconds:02d}"
+    interval = format_interval(song_duration)
 
     # 构建 types 数组
     types = []
@@ -94,15 +86,4 @@ async def search_and_get_first(name: str, singer: str = "") -> dict | None:
     :param singer: 歌手（可选）
     :return: music/play 所需参数 dict，失败返回 None
     """
-    keyword = name
-    if singer:
-        keyword = f"{name} {singer}"
-
-    try:
-        songs = await search_kg(keyword)
-        if not songs:
-            return None
-        return parse_kg_song(songs[0])
-    except Exception as e:
-        print(f"[搜索] 酷狗搜索出错: {e}")
-        return None
+    return await run_search(search_kg, parse_kg_song, build_keyword(name, singer), "酷狗")

@@ -151,32 +151,54 @@ def show_qr_page(qr_url: str, port: int = 19820):
     """
     启动本地HTTP服务器并在浏览器中打开二维码页面
     :param qr_url: B站登录二维码URL
-    :param port: 本地服务器端口
+    :param port: 本地服务器端口（被占用时自动尝试后续端口）
     """
-    global _server, _qr_url
+    global _server, _qr_url, _login_done
     _qr_url = qr_url
+    _login_done = False  # 重置登录状态，避免上一轮残留导致页面提前关闭
 
-    _server = HTTPServer(("127.0.0.1", port), QRHandler)
+    # 端口被占用时，依次尝试后续端口
+    last_err = None
+    bound_port = None
+    for p in range(port, port + 10):
+        try:
+            _server = HTTPServer(("127.0.0.1", p), QRHandler)
+            bound_port = p
+            break
+        except OSError as e:
+            last_err = e
+            continue
+    if _server is None:
+        print(f"[登录] 启动二维码页面服务器失败: {last_err}")
+        print(f"[登录] 请手动复制链接到浏览器打开:\n{qr_url}")
+        return
+
     # 在后台线程运行服务器
     server_thread = threading.Thread(target=_server.serve_forever, daemon=True)
     server_thread.start()
 
     # 自动打开浏览器
-    webbrowser.open(f"http://127.0.0.1:{port}/qr")
-    print(f"[登录] 二维码页面已在浏览器中打开: http://127.0.0.1:{port}/qr")
+    webbrowser.open(f"http://127.0.0.1:{bound_port}/qr")
+    print(f"[登录] 二维码页面已在浏览器中打开: http://127.0.0.1:{bound_port}/qr")
 
 
 def close_qr_page():
-    """通知页面关闭标签页，然后停止服务器"""
+    """通知页面关闭标签页，然后停止服务器（非阻塞，不卡事件循环）"""
     global _server, _login_done
     _login_done = True
-    if _server:
+    server = _server
+    if server is None:
+        return
+
+    def _delayed_shutdown():
         # 等待2秒让前端轮询到 done 并执行 window.close()
         import time
         time.sleep(2)
         try:
-            _server.shutdown()
+            server.shutdown()
         except Exception:
             pass
-        _server = None
-        _login_done = False
+
+    # 在后台线程执行延迟关闭，避免阻塞调用方（asyncio事件循环）
+    threading.Thread(target=_delayed_shutdown, daemon=True).start()
+    _server = None
