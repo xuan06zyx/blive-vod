@@ -1,0 +1,30 @@
+# Config file - contains login credentials and personal settings
+config.json
+cookies.json
+
+# Python cache
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+
+# Virtual environment
+venv/
+env/
+ENV/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+
+# PyInstaller build artifacts
+package-exe/build/
+package-exe/dist/
+*.spec

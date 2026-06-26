@@ -103,7 +103,7 @@ class lxmusic:
             }
         return self.Scheme_url('music/play', data)
 
-    def music_searchPlay(self, name: str, singer="", albumName="", interval="", playLater=False):
+    def music_searchPlay(self, name: str, singer="", albumName="", interval="", playLater=False, source="kg"):
         """
         搜索音乐并播放
         :param name:（歌曲名，必须）
@@ -116,6 +116,7 @@ class lxmusic:
         data = {
             "name": name,
             "singer": singer,
+            "source": source,
             "albumName": albumName,
             "interval": interval,
             "playLater": playLater
